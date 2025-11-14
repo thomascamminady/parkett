@@ -1,4 +1,5 @@
 import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest/+esm";
+import { DEFAULT_QUERY } from "./query.js";
 
 // Constants
 const DEFAULT_QUERY_LIMIT = 100000;
@@ -9,14 +10,29 @@ const RESIZE_DEBOUNCE_MS = 150;
 const DEFAULT_Y_AXIS_WIDTH = 60;
 const CHAR_WIDTH_ESTIMATE = 8;
 
+// Color palette for multi-file plotting
+const COLOR_PALETTE = [
+    "#4a90e2", // blue
+    "#e74c3c", // red
+    "#2ecc71", // green
+    "#f39c12", // orange
+    "#9b59b6", // purple
+    "#1abc9c", // teal
+    "#e67e22", // dark orange
+    "#34495e", // dark gray
+    "#16a085", // dark teal
+    "#c0392b", // dark red
+];
+
 // Global state
 let db = null;
 let conn = null;
 let lastQueryResults = null;
 let currentPlots = [];
 let resizeHandler = null;
+let loadedFiles = []; // Track all loaded files
 let plotOptions = {
-    xAxisColumn: "__index__",
+    xAxisColumn: "filename_index",
     lineColor: "#4a90e2",
 };
 
@@ -163,7 +179,7 @@ function renderTable(data) {
         columns: columns,
         pageLength: DEFAULT_PAGE_LENGTH,
         searching: true,
-        ordering: true,
+        ordering: false,
         info: true,
         autoWidth: false,
         deferRender: true,
@@ -194,14 +210,63 @@ function plotTable(data) {
     // Show and populate plot options menu
     const plotOptionsMenu = document.getElementById("plotOptionsMenu");
     const xAxisSelect = document.getElementById("xAxisSelect");
-    const lineColorPicker = document.getElementById("lineColorPicker");
 
     plotOptionsMenu.classList.add("visible");
 
+    // Check if data has filename column (multi-file mode)
+    const hasOriginColumn = data[0] && "filename" in data[0];
+    const columnNames = Object.keys(data[0]).filter(
+        (col) => col !== "filename" && col !== "filename_index"
+    );
+
+    // Group data by origin filename if available
+    let dataGroups = {};
+    let fileColorMap = {};
+
+    if (hasOriginColumn) {
+        // Group by filename
+        data.forEach((row) => {
+            const filename = row.filename;
+            if (!dataGroups[filename]) {
+                dataGroups[filename] = [];
+            }
+            dataGroups[filename].push(row);
+        });
+
+        // Assign colors to each file
+        const filenames = Object.keys(dataGroups);
+        filenames.forEach((filename, idx) => {
+            fileColorMap[filename] = COLOR_PALETTE[idx % COLOR_PALETTE.length];
+        });
+    } else {
+        // Single file mode
+        dataGroups["default"] = data;
+        fileColorMap["default"] = plotOptions.lineColor;
+    }
+
     // Populate x-axis dropdown with column names
-    xAxisSelect.innerHTML =
-        '<option value="__index__">Index (default)</option>';
-    const columnNames = Object.keys(data[0]);
+    xAxisSelect.innerHTML = "";
+
+    // Add filename_index option if in multi-file mode (default)
+    if (hasOriginColumn) {
+        const fileIndexOption = document.createElement("option");
+        fileIndexOption.value = "filename_index";
+        fileIndexOption.textContent = "File Index (default)";
+        if (plotOptions.xAxisColumn === "filename_index") {
+            fileIndexOption.selected = true;
+        }
+        xAxisSelect.appendChild(fileIndexOption);
+    }
+
+    // Add regular index option
+    const indexOption = document.createElement("option");
+    indexOption.value = "__index__";
+    indexOption.textContent = "Global Index";
+    if (plotOptions.xAxisColumn === "__index__") {
+        indexOption.selected = true;
+    }
+    xAxisSelect.appendChild(indexOption);
+
     columnNames.forEach((col) => {
         const option = document.createElement("option");
         option.value = col;
@@ -211,20 +276,6 @@ function plotTable(data) {
         }
         xAxisSelect.appendChild(option);
     });
-
-    // Set current color
-    lineColorPicker.value = plotOptions.lineColor;
-
-    // Get x-axis data based on selected column
-    let xAxisData;
-    if (plotOptions.xAxisColumn === "__index__") {
-        xAxisData = data.map((_, i) => i);
-    } else {
-        xAxisData = data.map((row) => {
-            const val = row[plotOptions.xAxisColumn];
-            return val === null || val === undefined ? null : Number(val);
-        });
-    }
 
     // Calculate the maximum y-axis width needed across all columns
     let maxYAxisWidth = DEFAULT_Y_AXIS_WIDTH;
@@ -290,20 +341,108 @@ function plotTable(data) {
             return;
         }
 
-        // Extract column data
-        const columnData = data.map((row) => {
-            const val = row[columnName];
-            // Convert to number if possible, otherwise null
-            return val === null || val === undefined ? null : Number(val);
-        });
-
         // Create container for this subplot
         const plotDiv = document.createElement("div");
         plotDiv.className = "subplot";
         plotContainer.appendChild(plotDiv);
 
-        // uPlot data format: [x-axis, y-axis]
-        const plotData = [xAxisData, columnData];
+        // Prepare series data for multi-file mode
+        let series = [
+            {
+                label:
+                    plotOptions.xAxisColumn === "__index__"
+                        ? "Global Index"
+                        : plotOptions.xAxisColumn === "filename_index"
+                        ? "File Index"
+                        : plotOptions.xAxisColumn,
+            },
+        ];
+
+        let plotData = [];
+
+        if (hasOriginColumn) {
+            // Multi-file mode: create a series for each file
+            const filenames = Object.keys(dataGroups);
+
+            // Build combined x-axis data (union of all files' x-axis values)
+            let allXValues = [];
+            filenames.forEach((filename) => {
+                const fileData = dataGroups[filename];
+                const xData =
+                    plotOptions.xAxisColumn === "__index__"
+                        ? fileData.map((_, i) => i)
+                        : plotOptions.xAxisColumn === "filename_index"
+                        ? fileData.map((row) => {
+                              const val = row.filename_index;
+                              return val === null || val === undefined
+                                  ? null
+                                  : Number(val);
+                          })
+                        : fileData.map((row) => {
+                              const val = row[plotOptions.xAxisColumn];
+                              return val === null || val === undefined
+                                  ? null
+                                  : Number(val);
+                          });
+                allXValues.push(...xData);
+            });
+
+            // For index mode, use sequential indices
+            if (plotOptions.xAxisColumn === "__index__") {
+                plotData.push(Array.from({ length: data.length }, (_, i) => i));
+            } else if (plotOptions.xAxisColumn === "filename_index") {
+                // For file index, use the actual file index values from data
+                plotData.push(data.map((row) => Number(row.filename_index)));
+            } else {
+                // Sort and deduplicate x values
+                allXValues = [...new Set(allXValues)].sort((a, b) => a - b);
+                plotData.push(allXValues);
+            }
+
+            // Add a series for each file
+            filenames.forEach((filename) => {
+                const fileData = dataGroups[filename];
+                series.push({
+                    label: filename,
+                    stroke: fileColorMap[filename],
+                    width: 2,
+                });
+
+                // Extract y data for this file
+                const yData = fileData.map((row) => {
+                    const val = row[columnName];
+                    return val === null || val === undefined
+                        ? null
+                        : Number(val);
+                });
+
+                plotData.push(yData);
+            });
+        } else {
+            // Single-file mode
+            const xAxisData =
+                plotOptions.xAxisColumn === "__index__"
+                    ? data.map((_, i) => i)
+                    : data.map((row) => {
+                          const val = row[plotOptions.xAxisColumn];
+                          return val === null || val === undefined
+                              ? null
+                              : Number(val);
+                      });
+
+            const columnData = data.map((row) => {
+                const val = row[columnName];
+                return val === null || val === undefined ? null : Number(val);
+            });
+
+            plotData = [xAxisData, columnData];
+
+            series.push({
+                label: columnName,
+                stroke: plotOptions.lineColor,
+                width: 2,
+            });
+        }
 
         // uPlot options
         const opts = {
@@ -311,26 +450,14 @@ function plotTable(data) {
             width: getPlotWidth(),
             height: PLOT_HEIGHT,
             legend: {
-                show: false,
+                show: hasOriginColumn, // Show legend in multi-file mode
             },
             cursor: {
                 sync: {
                     key: "parkett-plots",
                 },
             },
-            series: [
-                {
-                    label:
-                        plotOptions.xAxisColumn === "__index__"
-                            ? "Index"
-                            : plotOptions.xAxisColumn,
-                },
-                {
-                    label: columnName,
-                    stroke: plotOptions.lineColor,
-                    width: 2,
-                },
-            ],
+            series: series,
             axes: [
                 {
                     grid: { show: true },
@@ -338,7 +465,7 @@ function plotTable(data) {
                 {
                     side: 1,
                     grid: { show: true },
-                    size: maxYAxisWidth, // Use the fixed maximum width for all plots
+                    size: maxYAxisWidth,
                 },
             ],
             scales: {
@@ -371,27 +498,43 @@ function plotTable(data) {
     });
 }
 
-// Load and query parquet file
-async function loadParquetFile(file, customQuery) {
+// Load and query parquet file(s)
+async function loadParquetFile(files, customQuery) {
     try {
         updateProgress(0, "Starting...");
-        console.log(`Loading file: ${file.name}`);
 
-        updateProgress(25, "Reading file...");
-        // Read file as ArrayBuffer
-        const arrayBuffer = await file.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
+        // Handle both single file and multiple files
+        const fileArray = Array.isArray(files) ? files : [files];
+        const totalFiles = fileArray.length;
 
-        updateProgress(50, "Registering in DuckDB...");
-        // Register the file in DuckDB as 'file.parquet'
-        await db.registerFileBuffer("file.parquet", uint8Array);
+        // Register all files with DuckDB
+        for (let i = 0; i < fileArray.length; i++) {
+            const file = fileArray[i];
+            const progressPercent = Math.floor((i / totalFiles) * 50);
+            updateProgress(
+                progressPercent,
+                `Loading file ${i + 1}/${totalFiles}...`
+            );
 
-        updateProgress(75, "Executing query...");
-        const query =
-            customQuery ||
-            `SELECT * FROM 'file.parquet' LIMIT ${DEFAULT_QUERY_LIMIT}`;
+            console.log(`Loading file: ${file.name}`);
+            const arrayBuffer = await file.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+
+            // Register each file with its actual name
+            await db.registerFileBuffer(file.name, uint8Array);
+
+            // Track loaded files
+            if (!loadedFiles.find((f) => f.name === file.name)) {
+                loadedFiles.push({ name: file.name, file: file });
+            }
+        }
+
+        updateProgress(60, "Executing query...");
+
+        // Use default query if no custom query provided
+        const query = customQuery || DEFAULT_QUERY;
+
         console.log(`Executing query: ${query}`);
-
         const result = await conn.query(query);
 
         updateProgress(90, "Loading results...");
@@ -446,12 +589,16 @@ initDuckDB()
 
         // Set default query when file is selected
         fileInput.addEventListener("change", () => {
-            const file = fileInput.files[0];
-            if (file) {
-                fileMapping.textContent = `${file.name} → file.parquet`;
-                codeMirror.setValue(
-                    `SELECT * FROM 'file.parquet' LIMIT ${DEFAULT_QUERY_LIMIT}`
-                );
+            const files = Array.from(fileInput.files);
+            if (files.length > 0) {
+                if (files.length === 1) {
+                    fileMapping.textContent = `${files[0].name}`;
+                } else {
+                    fileMapping.textContent = `${files.length} files selected`;
+                }
+
+                // Set the default query from the centralized query template
+                codeMirror.setValue(DEFAULT_QUERY);
 
                 fileButton.classList.add("file-loaded");
                 document
@@ -463,9 +610,9 @@ initDuckDB()
         document
             .getElementById("loadButton")
             .addEventListener("click", async () => {
-                const file = fileInput.files[0];
+                const files = Array.from(fileInput.files);
 
-                if (!file) {
+                if (files.length === 0) {
                     alert("Please select a parquet file first");
                     return;
                 }
@@ -476,7 +623,7 @@ initDuckDB()
                     return;
                 }
 
-                await loadParquetFile(file, query);
+                await loadParquetFile(files, query);
             });
 
         document
@@ -522,12 +669,9 @@ initDuckDB()
             .getElementById("applyOptionsButton")
             .addEventListener("click", () => {
                 const xAxisSelect = document.getElementById("xAxisSelect");
-                const lineColorPicker =
-                    document.getElementById("lineColorPicker");
 
                 // Update plot options
                 plotOptions.xAxisColumn = xAxisSelect.value;
-                plotOptions.lineColor = lineColorPicker.value;
 
                 // Close the panel
                 document

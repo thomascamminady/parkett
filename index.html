@@ -57,10 +57,11 @@
                         type="file"
                         id="fileInput"
                         accept=".parquet"
+                        multiple
                         style="display: none"
                     />
                     <button id="fileButton" class="file-button">
-                        Choose Parquet File
+                        Choose Parquet File(s)
                     </button>
                     <span
                         id="fileMapping"
@@ -69,9 +70,7 @@
                 </div>
 
                 <div class="form-group">
-                    <textarea id="queryInput" rows="3">
-SELECT * FROM 'file.parquet' LIMIT 100000</textarea
-                    >
+                    <textarea id="queryInput" rows="8"></textarea>
                 </div>
 
                 <div class="button-group">
@@ -102,20 +101,18 @@ SELECT * FROM 'file.parquet' LIMIT 100000</textarea
                             <option value="__index__">Index (default)</option>
                         </select>
                     </div>
-                    <div class="option-group">
-                        <label for="lineColorPicker">Line Color:</label>
-                        <input
-                            type="color"
-                            id="lineColorPicker"
-                            value="#4a90e2"
-                        />
-                    </div>
                     <button id="applyOptionsButton" class="apply-button">
                         Apply Changes
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- Load default query first -->
+        <script type="module">
+            import { DEFAULT_QUERY } from "./query.js";
+            document.getElementById("queryInput").value = DEFAULT_QUERY;
+        </script>
 
         <!-- Custom script -->
         <script type="module" src="script.js"></script>
