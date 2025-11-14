@@ -3,6 +3,8 @@ import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest
 let db = null;
 let conn = null;
 let lastQueryResults = null;
+let currentPlots = []; // Store current plot instances globally
+let resizeHandler = null; // Store resize handler reference
 
 // Initialize DuckDB
 async function initDuckDB() {
@@ -93,6 +95,7 @@ function exportToCSV(data) {
 function renderTable(data) {
     const tableContainer = document.getElementById("tableContainer");
     const plotContainer = document.getElementById("plotContainer");
+    const plotButton = document.getElementById("plotButton");
 
     if (!data || data.length === 0) {
         tableContainer.innerHTML = "<p>No data to display</p>";
@@ -102,6 +105,9 @@ function renderTable(data) {
     // Show table, hide plots
     tableContainer.style.display = "block";
     plotContainer.style.display = "none";
+
+    // Update button text
+    plotButton.textContent = "Plot Data";
 
     // Destroy existing DataTable instance if it exists
     if ($.fn.DataTable.isDataTable("#dataTable")) {
@@ -135,7 +141,7 @@ function renderTable(data) {
     $("#dataTable").DataTable({
         data: data,
         columns: columns,
-        pageLength: 10,
+        pageLength: 100,
         searching: true,
         ordering: true,
         info: true,
@@ -147,6 +153,7 @@ function renderTable(data) {
 function plotTable(data) {
     const tableContainer = document.getElementById("tableContainer");
     const plotContainer = document.getElementById("plotContainer");
+    const plotButton = document.getElementById("plotButton");
 
     if (!data || data.length === 0) {
         plotContainer.innerHTML = "<p>No data to plot</p>";
@@ -158,14 +165,65 @@ function plotTable(data) {
     plotContainer.style.display = "block";
     plotContainer.innerHTML = "";
 
+    // Update button text
+    plotButton.textContent = "Show Table";
+
     // Get column names
     const columnNames = Object.keys(data[0]);
 
     // Create index array (0, 1, 2, ...)
     const indexData = data.map((_, i) => i);
 
+    // Calculate the maximum y-axis width needed across all columns
+    let maxYAxisWidth = 60;
+    columnNames.forEach((columnName) => {
+        const columnData = data.map((row) => {
+            const val = row[columnName];
+            return val === null || val === undefined ? null : Number(val);
+        });
+
+        // Find min and max to estimate tick label lengths
+        const validData = columnData.filter((v) => v !== null && !isNaN(v));
+        if (validData.length > 0) {
+            const min = Math.min(...validData);
+            const max = Math.max(...validData);
+            // Estimate label width from the longest value
+            const maxLabelLength = Math.max(
+                String(Math.floor(min)).length,
+                String(Math.floor(max)).length
+            );
+            const estimatedWidth = maxLabelLength * 8 + 20; // 8px per char + padding
+            maxYAxisWidth = Math.max(maxYAxisWidth, estimatedWidth);
+        }
+    });
+
     // Store all plot instances for synchronized zooming
     const plots = [];
+
+    // Calculate initial width after container is visible
+    const getPlotWidth = () => {
+        // Use requestAnimationFrame to ensure we get the correct width
+        const containerWidth = plotContainer.getBoundingClientRect().width;
+        return Math.max(containerWidth - 40, 400);
+    };
+
+    // Handle window resize
+    let resizeTimeout;
+    const handleResize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            const newWidth = getPlotWidth();
+            plots.forEach((plot) => {
+                if (plot && plot.setSize) {
+                    plot.setSize({ width: newWidth, height: 200 });
+                }
+            });
+        }, 150);
+    };
+
+    // Remove old resize listener if it exists
+    window.removeEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Create a plot for each column
     columnNames.forEach((columnName) => {
@@ -187,7 +245,7 @@ function plotTable(data) {
         // uPlot options
         const opts = {
             title: columnName,
-            width: plotContainer.offsetWidth - 40,
+            width: getPlotWidth(),
             height: 200,
             legend: {
                 show: false,
@@ -212,6 +270,10 @@ function plotTable(data) {
                 {
                     side: 1,
                     grid: { show: true },
+                    label: columnName,
+                    labelGap: 5,
+                    gap: 5,
+                    size: maxYAxisWidth, // Use the fixed maximum width for all plots
                 },
             ],
             scales: {
@@ -224,7 +286,7 @@ function plotTable(data) {
                     (u, key) => {
                         if (key === "x") {
                             // Sync x-axis across all plots
-                            plots.forEach((plot) => {
+                            currentPlots.forEach((plot) => {
                                 if (plot !== u) {
                                     plot.setScale("x", {
                                         min: u.scales.x.min,
@@ -240,7 +302,7 @@ function plotTable(data) {
 
         // Create plot
         const plot = new uPlot(opts, plotData, plotDiv);
-        plots.push(plot);
+        currentPlots.push(plot);
     });
 }
 
@@ -261,7 +323,8 @@ async function loadParquetFile(file, customQuery) {
 
         updateProgress(75, "Executing query...");
         // Execute query - always uses 'file.parquet' as the filename
-        const query = customQuery || `SELECT * FROM 'file.parquet' LIMIT 1000`;
+        const query =
+            customQuery || `SELECT * FROM 'file.parquet' LIMIT 100000`;
         console.log(`Executing query: ${query}`);
 
         const result = await conn.query(query);
@@ -302,7 +365,7 @@ initDuckDB()
                 // Show the mapping
                 fileMapping.textContent = `${file.name} → file.parquet`;
                 // Query always uses 'file.parquet'
-                queryInput.value = `SELECT * FROM 'file.parquet' LIMIT 1000`;
+                queryInput.value = `SELECT * FROM 'file.parquet' LIMIT 100000`;
             }
         });
 
@@ -342,7 +405,17 @@ initDuckDB()
                 alert("No query results to plot. Please run a query first.");
                 return;
             }
-            plotTable(lastQueryResults);
+
+            const plotButton = document.getElementById("plotButton");
+            const tableContainer = document.getElementById("tableContainer");
+            const plotContainer = document.getElementById("plotContainer");
+
+            // Toggle between table and plot view
+            if (plotButton.textContent === "Plot Data") {
+                plotTable(lastQueryResults);
+            } else {
+                renderTable(lastQueryResults);
+            }
         });
     })
     .catch((error) => {
