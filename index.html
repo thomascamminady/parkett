@@ -5,10 +5,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Parquet File Viewer</title>
 
-        <!-- DataTables CSS -->
+        <!-- DataTables CSS - UIKit styling -->
         <link
             rel="stylesheet"
-            href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+            href="https://cdn.datatables.net/1.13.6/css/dataTables.uikit.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.16.22/css/uikit.min.css"
         />
 
         <!-- jQuery -->
@@ -16,65 +20,174 @@
 
         <!-- DataTables JS -->
         <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.uikit.min.js"></script>
 
         <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, "Helvetica Neue", Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            h1 {
+                margin: 0 0 20px 0;
+                color: #333;
+                font-size: 24px;
+                font-weight: 600;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 5px;
+                color: #555;
+                font-weight: 500;
+                font-size: 14px;
+            }
+
+            input[type="file"] {
+                display: block;
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                font-size: 14px;
+            }
+
+            #queryInput {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+                font-size: 14px;
+            }
+
+            #queryInput:focus {
+                outline: none;
+                border-color: #4a90e2;
+            }
+
+            .button-group {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+
+            button {
+                padding: 8px 16px;
+                border: none;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                font-family: inherit;
+            }
+
+            #loadButton {
+                background: #4a90e2;
+                color: white;
+                flex: 1;
+            }
+
+            #loadButton:hover {
+                background: #357abd;
+            }
+
+            #exportButton {
+                background: #f0f0f0;
+                color: #333;
+                border: 1px solid #ddd;
+            }
+
+            #exportButton:hover {
+                background: #e0e0e0;
+            }
+
             #progressContainer {
                 display: none;
-                margin: 20px 0;
+                margin: 15px 0;
             }
+
             #progressBar {
                 width: 100%;
                 height: 30px;
                 background-color: #f0f0f0;
-                border-radius: 5px;
                 overflow: hidden;
             }
+
             #progressFill {
                 height: 100%;
-                background-color: #4caf50;
+                background: #4a90e2;
                 width: 0%;
-                transition: width 0.3s;
+                transition: width 0.3s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 color: white;
-                font-weight: bold;
+                font-weight: 500;
+                font-size: 14px;
             }
+
             #tableContainer {
                 margin-top: 20px;
+                overflow-x: auto;
             }
-            #queryInput {
-                width: 100%;
-                padding: 10px;
-                margin: 10px 0;
-                font-family: monospace;
-                font-size: 14px;
+
+            #dataTable thead th {
+                background: #4a90e2;
+                color: white !important;
+                font-weight: 600;
+            }
+
+            #dataTable tbody tr:hover {
+                background-color: #f0f7ff;
             }
         </style>
     </head>
     <body>
-        <h1>Parquet File Viewer</h1>
+        <div class="container">
+            <h1>Parquet File Viewer</h1>
 
-        <input type="file" id="fileInput" accept=".parquet" />
-
-        <div>
-            <input
-                type="text"
-                id="queryInput"
-                value="SELECT * FROM 'file.parquet' LIMIT 10"
-            />
-        </div>
-
-        <button id="loadButton">Run Query</button>
-        <button id="exportButton">Export to CSV</button>
-
-        <div id="progressContainer">
-            <div id="progressBar">
-                <div id="progressFill">0%</div>
+            <div class="form-group">
+                <label for="fileInput">Select Parquet File</label>
+                <input type="file" id="fileInput" accept=".parquet" />
             </div>
-        </div>
 
-        <div id="tableContainer"></div>
+            <div class="form-group">
+                <label for="queryInput">SQL Query</label>
+                <input
+                    type="text"
+                    id="queryInput"
+                    value="SELECT * FROM 'file.parquet' LIMIT 10"
+                />
+            </div>
+
+            <div class="button-group">
+                <button id="loadButton">Run Query</button>
+                <button id="exportButton">Export to CSV</button>
+            </div>
+
+            <div id="progressContainer">
+                <div id="progressBar">
+                    <div id="progressFill">0%</div>
+                </div>
+            </div>
+
+            <div id="tableContainer"></div>
+        </div>
 
         <script type="module">
             import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest/+esm";
@@ -190,7 +303,7 @@
                 const tableContainer =
                     document.getElementById("tableContainer");
                 tableContainer.innerHTML =
-                    '<table id="dataTable" class="display" style="width:100%"></table>';
+                    '<div style="overflow-x: auto;"><table id="dataTable" class="display" style="width:100%"></table></div>';
 
                 // Initialize DataTable
                 $("#dataTable").DataTable({
