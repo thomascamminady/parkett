@@ -90,37 +90,51 @@ function exportToCSV(data) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 }
-
-// Render table using DataTables
 function renderTable(data) {
-    if (data.length === 0) {
-        document.getElementById("tableContainer").innerHTML =
-            "<p>No data to display</p>";
+    const tableContainer = document.getElementById("tableContainer");
+
+    if (!data || data.length === 0) {
+        tableContainer.innerHTML = "<p>No data to display</p>";
         return;
     }
 
-    // Get column names from first row
-    const columns = Object.keys(data[0]).map((key) => ({
-        title: key,
-        data: key,
-    }));
-
-    // Clear previous table if exists
-    const tableContainer = document.getElementById("tableContainer");
-
-    // Destroy existing DataTable if it exists
+    // Destroy existing DataTable instance if it exists
     if ($.fn.DataTable.isDataTable("#dataTable")) {
-        $("#dataTable").DataTable().destroy();
+        $("#dataTable").DataTable().clear().destroy();
     }
 
-    tableContainer.innerHTML =
-        '<div style="overflow-x: auto;"><table id="dataTable" class="display" style="width:100%"></table></div>';
+    // Infer column names from the first row
+    const columnNames = Object.keys(data[0]);
 
-    // Initialize DataTable
+    // Build basic table skeleton with header (as in the docs)
+    const theadHtml =
+        "<thead><tr>" +
+        columnNames.map((name) => `<th>${name}</th>`).join("") +
+        "</tr></thead>";
+
+    tableContainer.innerHTML = `
+        <div style="overflow-x:auto;">
+            <table id="dataTable" class="display" style="width:100%">
+                ${theadHtml}
+            </table>
+        </div>
+    `;
+
+    // Prepare column definitions for DataTables
+    const columns = columnNames.map((name) => ({
+        data: name,
+        title: name,
+    }));
+
+    // Initialize DataTable (very similar to the official examples)
     $("#dataTable").DataTable({
         data: data,
         columns: columns,
         pageLength: 10,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
     });
 }
 
@@ -150,9 +164,9 @@ async function loadParquetFile(file, customQuery) {
         // Store results for export
         lastQueryResults = rows;
 
-        console.log("Query results:");
-        console.table(rows);
-        console.log("Raw data:", rows);
+        // console.log("Query results:");
+        // console.table(rows);
+        // console.log("Raw data:", rows);
 
         updateProgress(100, "Complete!");
 
