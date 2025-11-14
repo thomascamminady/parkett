@@ -385,9 +385,9 @@ async function loadParquetFile(file, customQuery) {
         console.log(`Executing query: ${query}`);
 
         const result = await conn.query(query);
-        
+
         updateProgress(90, "Loading results...");
-        
+
         // Convert to array - this is where the time is spent
         const rows = result.toArray().map((row) => row.toJSON());
 
@@ -401,12 +401,8 @@ async function loadParquetFile(file, customQuery) {
         renderTable(rows);
 
         // Update button styles to show export and plot are now available
-        document
-            .getElementById("exportButton")
-            .classList.add("query-executed");
-        document
-            .getElementById("plotButton")
-            .classList.add("query-executed");
+        document.getElementById("exportButton").classList.add("query-executed");
+        document.getElementById("plotButton").classList.add("query-executed");
     } catch (error) {
         console.error("Error loading parquet file:", error);
         hideProgress();
