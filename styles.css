@@ -91,6 +91,16 @@ button {
     background: #e0e0e0;
 }
 
+#plotButton {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+#plotButton:hover {
+    background: #e0e0e0;
+}
+
 #progressContainer {
     display: none;
     margin: 15px 0;
@@ -129,4 +139,20 @@ button {
 
 #dataTable tbody tr:hover {
     background-color: #f0f7ff;
+}
+
+#plotContainer {
+    margin-top: 20px;
+    display: none;
+}
+
+.subplot {
+    margin-bottom: 30px;
+}
+
+.subplot .u-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
 }

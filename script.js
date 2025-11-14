@@ -92,11 +92,16 @@ function exportToCSV(data) {
 }
 function renderTable(data) {
     const tableContainer = document.getElementById("tableContainer");
+    const plotContainer = document.getElementById("plotContainer");
 
     if (!data || data.length === 0) {
         tableContainer.innerHTML = "<p>No data to display</p>";
         return;
     }
+
+    // Show table, hide plots
+    tableContainer.style.display = "block";
+    plotContainer.style.display = "none";
 
     // Destroy existing DataTable instance if it exists
     if ($.fn.DataTable.isDataTable("#dataTable")) {
@@ -135,6 +140,107 @@ function renderTable(data) {
         ordering: true,
         info: true,
         autoWidth: false,
+    });
+}
+
+// Plot data using uPlot
+function plotTable(data) {
+    const tableContainer = document.getElementById("tableContainer");
+    const plotContainer = document.getElementById("plotContainer");
+
+    if (!data || data.length === 0) {
+        plotContainer.innerHTML = "<p>No data to plot</p>";
+        return;
+    }
+
+    // Show plots, hide table
+    tableContainer.style.display = "none";
+    plotContainer.style.display = "block";
+    plotContainer.innerHTML = "";
+
+    // Get column names
+    const columnNames = Object.keys(data[0]);
+
+    // Create index array (0, 1, 2, ...)
+    const indexData = data.map((_, i) => i);
+
+    // Store all plot instances for synchronized zooming
+    const plots = [];
+
+    // Create a plot for each column
+    columnNames.forEach((columnName) => {
+        // Extract column data
+        const columnData = data.map((row) => {
+            const val = row[columnName];
+            // Convert to number if possible, otherwise null
+            return val === null || val === undefined ? null : Number(val);
+        });
+
+        // Create container for this subplot
+        const plotDiv = document.createElement("div");
+        plotDiv.className = "subplot";
+        plotContainer.appendChild(plotDiv);
+
+        // uPlot data format: [x-axis, y-axis]
+        const plotData = [indexData, columnData];
+
+        // uPlot options
+        const opts = {
+            title: columnName,
+            width: plotContainer.offsetWidth - 40,
+            height: 200,
+            legend: {
+                show: false,
+            },
+            cursor: {
+                sync: {
+                    key: "parkett-plots",
+                },
+            },
+            series: [
+                {},
+                {
+                    label: columnName,
+                    stroke: "#4a90e2",
+                    width: 2,
+                },
+            ],
+            axes: [
+                {
+                    grid: { show: true },
+                },
+                {
+                    side: 1,
+                    grid: { show: true },
+                },
+            ],
+            scales: {
+                x: {
+                    time: false,
+                },
+            },
+            hooks: {
+                setScale: [
+                    (u, key) => {
+                        if (key === "x") {
+                            // Sync x-axis across all plots
+                            plots.forEach((plot) => {
+                                if (plot !== u) {
+                                    plot.setScale("x", {
+                                        min: u.scales.x.min,
+                                        max: u.scales.x.max,
+                                    });
+                                }
+                            });
+                        }
+                    },
+                ],
+            },
+        };
+
+        // Create plot
+        const plot = new uPlot(opts, plotData, plotDiv);
+        plots.push(plot);
     });
 }
 
@@ -230,6 +336,14 @@ initDuckDB()
                 }
                 exportToCSV(lastQueryResults);
             });
+
+        document.getElementById("plotButton").addEventListener("click", () => {
+            if (!lastQueryResults) {
+                alert("No query results to plot. Please run a query first.");
+                return;
+            }
+            plotTable(lastQueryResults);
+        });
     })
     .catch((error) => {
         console.error("Failed to initialize DuckDB:", error);
