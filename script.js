@@ -418,26 +418,24 @@ async function loadParquetFile(file, customQuery) {
     }
 }
 
+// Initialize CodeMirror immediately to avoid FOUC
+const queryTextarea = document.getElementById("queryInput");
+const codeMirror = CodeMirror.fromTextArea(queryTextarea, {
+    mode: "text/x-sql",
+    theme: "neat",
+    lineNumbers: false,
+    lineWrapping: true,
+    indentWithTabs: false,
+    indentUnit: 2,
+    tabSize: 2,
+});
+codeMirror.setSize(null, "auto");
+
 // Initialize on page load
 initDuckDB()
     .then(() => {
         const fileInput = document.getElementById("fileInput");
-        const queryTextarea = document.getElementById("queryInput");
         const fileMapping = document.getElementById("fileMapping");
-
-        // Initialize CodeMirror for SQL syntax highlighting
-        const codeMirror = CodeMirror.fromTextArea(queryTextarea, {
-            mode: "text/x-sql",
-            theme: "neat",
-            lineNumbers: false,
-            lineWrapping: true,
-            indentWithTabs: false,
-            indentUnit: 2,
-            tabSize: 2,
-        });
-
-        // Set initial height
-        codeMirror.setSize(null, "auto");
 
         // Wire up the file button to trigger file input
         const fileButton = document.getElementById("fileButton");

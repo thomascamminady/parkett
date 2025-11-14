@@ -99,6 +99,8 @@ input[type="file"] {
     font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
     font-size: 14px;
     resize: vertical;
+    display: none;
+    /* Hide until CodeMirror takes over */
 }
 
 #queryInput:focus {
