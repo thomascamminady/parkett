@@ -50,10 +50,22 @@ input[type="file"] {
     border: 1px solid #ddd;
     font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
     font-size: 14px;
+    resize: vertical;
 }
 
 #queryInput:focus {
     outline: none;
+    border-color: #4a90e2;
+}
+
+.CodeMirror {
+    border: 1px solid #ddd;
+    height: auto;
+    font-size: 14px;
+    font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+}
+
+.CodeMirror-focused {
     border-color: #4a90e2;
 }
 

@@ -23,6 +23,16 @@
             href="https://cdn.jsdelivr.net/npm/uplot@1.6.24/dist/uPlot.min.css"
         />
 
+        <!-- CodeMirror CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/neat.min.css"
+        />
+
         <!-- Custom styles -->
         <link rel="stylesheet" href="styles.css" />
 
@@ -34,6 +44,10 @@
 
         <!-- uPlot JS -->
         <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.24/dist/uPlot.iife.min.js"></script>
+
+        <!-- CodeMirror JS -->
+        <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/sql/sql.min.js"></script>
     </head>
     <body>
         <div class="container">
@@ -48,11 +62,9 @@
 
             <div class="form-group">
                 <label for="queryInput">SQL Query</label>
-                <input
-                    type="text"
-                    id="queryInput"
-                    value="SELECT * FROM 'file.parquet' LIMIT 100000"
-                />
+                <textarea id="queryInput" rows="3">
+SELECT * FROM 'file.parquet' LIMIT 100000</textarea
+                >
             </div>
 
             <div class="button-group">

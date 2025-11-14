@@ -141,7 +141,7 @@ function renderTable(data) {
     $("#dataTable").DataTable({
         data: data,
         columns: columns,
-        pageLength: 100,
+        pageLength: 25,
         searching: true,
         ordering: true,
         info: true,
@@ -355,8 +355,22 @@ async function loadParquetFile(file, customQuery) {
 initDuckDB()
     .then(() => {
         const fileInput = document.getElementById("fileInput");
-        const queryInput = document.getElementById("queryInput");
+        const queryTextarea = document.getElementById("queryInput");
         const fileMapping = document.getElementById("fileMapping");
+
+        // Initialize CodeMirror for SQL syntax highlighting
+        const codeMirror = CodeMirror.fromTextArea(queryTextarea, {
+            mode: "text/x-sql",
+            theme: "neat",
+            lineNumbers: false,
+            lineWrapping: true,
+            indentWithTabs: false,
+            indentUnit: 2,
+            tabSize: 2,
+        });
+
+        // Set initial height
+        codeMirror.setSize(null, "auto");
 
         // Set default query when file is selected
         fileInput.addEventListener("change", () => {
@@ -365,7 +379,9 @@ initDuckDB()
                 // Show the mapping
                 fileMapping.textContent = `${file.name} → file.parquet`;
                 // Query always uses 'file.parquet'
-                queryInput.value = `SELECT * FROM 'file.parquet' LIMIT 100000`;
+                codeMirror.setValue(
+                    `SELECT * FROM 'file.parquet' LIMIT 100000`
+                );
             }
         });
 
@@ -379,7 +395,7 @@ initDuckDB()
                     return;
                 }
 
-                const query = queryInput.value.trim();
+                const query = codeMirror.getValue().trim();
                 if (!query) {
                     alert("Please enter a query");
                     return;
