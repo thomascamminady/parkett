@@ -136,7 +136,7 @@ async function loadParquetFile(file, customQuery) {
 
         updateProgress(75, "Executing query...");
         // Execute query - use custom query or default
-        const query = customQuery || `SELECT * FROM '${file.name}' LIMIT 10`;
+        const query = customQuery || `SELECT * FROM '${file.name}'`;
         console.log(`Executing query: ${query}`);
 
         const result = await conn.query(query);
@@ -173,7 +173,7 @@ initDuckDB()
         fileInput.addEventListener("change", () => {
             const file = fileInput.files[0];
             if (file) {
-                queryInput.value = `SELECT * FROM '${file.name}' LIMIT 10`;
+                queryInput.value = `SELECT * FROM '${file.name}'`;
             }
         });
 
