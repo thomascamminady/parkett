@@ -2,6 +2,10 @@
 
 A simple .parquet file viewer.
 
+## Usage
+
+Visit [camminady.dev/parkett/](https://camminady.dev/parkett/) or clone this repo and open `index.html` in your browser.
+
 ## Table View
 
 ![Table View](Screenshot_Table.png)
