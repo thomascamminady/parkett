@@ -51,39 +51,41 @@
     </head>
     <body>
         <div class="container">
-            <div class="form-group">
-                <label for="fileInput"></label>
-                <input
-                    type="file"
-                    id="fileInput"
-                    accept=".parquet"
-                    style="display: none"
-                />
-                <button id="fileButton" class="file-button">
-                    Choose Parquet File
-                </button>
-                <span
-                    id="fileMapping"
-                    style="margin-left: 10px; font-size: 12px; color: #666"
-                ></span>
-            </div>
+            <div class="controls-wrapper">
+                <div class="form-group">
+                    <label for="fileInput"></label>
+                    <input
+                        type="file"
+                        id="fileInput"
+                        accept=".parquet"
+                        style="display: none"
+                    />
+                    <button id="fileButton" class="file-button">
+                        Choose Parquet File
+                    </button>
+                    <span
+                        id="fileMapping"
+                        style="margin-left: 10px; font-size: 12px; color: #666"
+                    ></span>
+                </div>
 
-            <div class="form-group">
-                <label for="queryInput"></label>
-                <textarea id="queryInput" rows="3">
+                <div class="form-group">
+                    <label for="queryInput"></label>
+                    <textarea id="queryInput" rows="3">
 SELECT * FROM 'file.parquet' LIMIT 100000</textarea
-                >
-            </div>
+                    >
+                </div>
 
-            <div class="button-group">
-                <button id="loadButton">Run Query</button>
-                <button id="exportButton">Export to CSV</button>
-                <button id="plotButton">Plot Data</button>
-            </div>
+                <div class="button-group">
+                    <button id="loadButton">Run Query</button>
+                    <button id="exportButton">Export to CSV</button>
+                    <button id="plotButton">Plot Data</button>
+                </div>
 
-            <div id="progressContainer">
-                <div id="progressBar">
-                    <div id="progressFill">0%</div>
+                <div id="progressContainer">
+                    <div id="progressBar">
+                        <div id="progressFill">0%</div>
+                    </div>
                 </div>
             </div>
 

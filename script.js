@@ -134,7 +134,7 @@ function renderTable(data) {
         "</tr></thead>";
 
     tableContainer.innerHTML = `
-        <div style="overflow-x:auto;">
+        <div class="table-scroll-wrapper">
             <table id="dataTable" class="display" style="width:100%">
                 ${theadHtml}
             </table>
@@ -147,7 +147,7 @@ function renderTable(data) {
         title: name,
     }));
 
-    // Initialize DataTable (very similar to the official examples)
+    // Initialize DataTable with performance optimizations
     $("#dataTable").DataTable({
         data: data,
         columns: columns,
@@ -156,6 +156,9 @@ function renderTable(data) {
         ordering: true,
         info: true,
         autoWidth: false,
+        deferRender: true, // Only create HTML elements for visible rows
+        scroller: false,
+        processing: false, // Disable processing indicator for snappier feel
     });
 }
 
@@ -327,9 +330,6 @@ function plotTable(data) {
                 {
                     side: 1,
                     grid: { show: true },
-                    label: columnName,
-                    labelGap: 5,
-                    gap: 5,
                     size: maxYAxisWidth, // Use the fixed maximum width for all plots
                 },
             ],
@@ -385,30 +385,28 @@ async function loadParquetFile(file, customQuery) {
         console.log(`Executing query: ${query}`);
 
         const result = await conn.query(query);
+        
+        updateProgress(90, "Loading results...");
+        
+        // Convert to array - this is where the time is spent
         const rows = result.toArray().map((row) => row.toJSON());
 
         // Store results for export
         lastQueryResults = rows;
 
-        // console.log("Query results:");
-        // console.table(rows);
-        // console.log("Raw data:", rows);
-
         updateProgress(100, "Complete!");
 
-        // Render the table
-        setTimeout(() => {
-            hideProgress();
-            renderTable(rows);
+        // Render the table immediately (no setTimeout delay)
+        hideProgress();
+        renderTable(rows);
 
-            // Update button styles to show export and plot are now available
-            document
-                .getElementById("exportButton")
-                .classList.add("query-executed");
-            document
-                .getElementById("plotButton")
-                .classList.add("query-executed");
-        }, 500);
+        // Update button styles to show export and plot are now available
+        document
+            .getElementById("exportButton")
+            .classList.add("query-executed");
+        document
+            .getElementById("plotButton")
+            .classList.add("query-executed");
     } catch (error) {
         console.error("Error loading parquet file:", error);
         hideProgress();

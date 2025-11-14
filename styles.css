@@ -11,10 +11,14 @@ body {
 }
 
 .container {
-    width: 90%;
-    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 20px;
+}
+
+.controls-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 h1 {
@@ -190,17 +194,81 @@ button {
     font-size: 14px;
 }
 
-#tableContainer {
-    margin-top: 20px;
+.table-scroll-wrapper {
     overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+/* Custom scrollbar styling for the table wrapper */
+.table-scroll-wrapper::-webkit-scrollbar {
+    height: 12px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: #4a90e2;
+    border-radius: 6px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #357abd;
+}
+
+/* Also style the main container scrollbar */
+#tableContainer::-webkit-scrollbar {
+    height: 12px;
+}
+
+#tableContainer::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 6px;
+}
+
+#tableContainer::-webkit-scrollbar-thumb {
+    background: #4a90e2;
+    border-radius: 6px;
+}
+
+#tableContainer::-webkit-scrollbar-thumb:hover {
+    background: #357abd;
+}
+
+/* DataTables pagination styling */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #4a90e2 !important;
+    color: white !important;
+    border: 1px solid #4a90e2 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: #357abd !important;
+    color: white !important;
+    border: 1px solid #357abd !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #f0f7ff !important;
+    color: #333 !important;
+    border: 1px solid #4a90e2 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 3px;
 }
 
 #dataTable thead th {
     background: #4a90e2;
     color: white !important;
     font-weight: 600;
-    font-size: 13px;
-    padding: 6px 10px;
+    font-size: 14px;
+    padding: 8px 10px;
+    line-height: 1;
+    vertical-align: middle;
 }
 
 #dataTable tbody td {
@@ -212,9 +280,22 @@ button {
     background-color: #f0f7ff;
 }
 
+#tableContainer {
+    margin-top: 20px;
+    overflow-x: auto;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
 #plotContainer {
     margin-top: 20px;
     display: none;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .subplot {
