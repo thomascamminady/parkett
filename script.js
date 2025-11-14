@@ -1,14 +1,24 @@
 import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest/+esm";
 
+// Constants
+const DEFAULT_QUERY_LIMIT = 100000;
+const DEFAULT_PAGE_LENGTH = 25;
+const PLOT_HEIGHT = 200;
+const PLOT_MIN_WIDTH = 400;
+const RESIZE_DEBOUNCE_MS = 150;
+const DEFAULT_Y_AXIS_WIDTH = 60;
+const CHAR_WIDTH_ESTIMATE = 8;
+
+// Global state
 let db = null;
 let conn = null;
 let lastQueryResults = null;
-let currentPlots = []; // Store current plot instances globally
-let resizeHandler = null; // Store resize handler reference
+let currentPlots = [];
+let resizeHandler = null;
 let plotOptions = {
     xAxisColumn: "__index__",
     lineColor: "#4a90e2",
-}; // Store plot options
+};
 
 // Initialize DuckDB
 async function initDuckDB() {
@@ -151,14 +161,14 @@ function renderTable(data) {
     $("#dataTable").DataTable({
         data: data,
         columns: columns,
-        pageLength: 25,
+        pageLength: DEFAULT_PAGE_LENGTH,
         searching: true,
         ordering: true,
         info: true,
         autoWidth: false,
-        deferRender: true, // Only create HTML elements for visible rows
+        deferRender: true,
         scroller: false,
-        processing: false, // Disable processing indicator for snappier feel
+        processing: false,
     });
 }
 
@@ -217,7 +227,7 @@ function plotTable(data) {
     }
 
     // Calculate the maximum y-axis width needed across all columns
-    let maxYAxisWidth = 60;
+    let maxYAxisWidth = DEFAULT_Y_AXIS_WIDTH;
     columnNames.forEach((columnName) => {
         const columnData = data.map((row) => {
             const val = row[columnName];
@@ -229,12 +239,11 @@ function plotTable(data) {
         if (validData.length > 0) {
             const min = Math.min(...validData);
             const max = Math.max(...validData);
-            // Estimate label width from the longest value
             const maxLabelLength = Math.max(
                 String(Math.floor(min)).length,
                 String(Math.floor(max)).length
             );
-            const estimatedWidth = maxLabelLength * 8 + 20; // 8px per char + padding
+            const estimatedWidth = maxLabelLength * CHAR_WIDTH_ESTIMATE + 20;
             maxYAxisWidth = Math.max(maxYAxisWidth, estimatedWidth);
         }
     });
@@ -250,9 +259,8 @@ function plotTable(data) {
 
     // Calculate initial width after container is visible
     const getPlotWidth = () => {
-        // Use requestAnimationFrame to ensure we get the correct width
         const containerWidth = plotContainer.getBoundingClientRect().width;
-        return Math.max(containerWidth - 40, 400);
+        return Math.max(containerWidth - 40, PLOT_MIN_WIDTH);
     };
 
     // Create resize handler
@@ -263,10 +271,10 @@ function plotTable(data) {
             const newWidth = getPlotWidth();
             currentPlots.forEach((plot) => {
                 if (plot && plot.setSize) {
-                    plot.setSize({ width: newWidth, height: 200 });
+                    plot.setSize({ width: newWidth, height: PLOT_HEIGHT });
                 }
             });
-        }, 150);
+        }, RESIZE_DEBOUNCE_MS);
     };
 
     // Add resize listener
@@ -301,7 +309,7 @@ function plotTable(data) {
         const opts = {
             title: columnName,
             width: getPlotWidth(),
-            height: 200,
+            height: PLOT_HEIGHT,
             legend: {
                 show: false,
             },
@@ -379,9 +387,9 @@ async function loadParquetFile(file, customQuery) {
         await db.registerFileBuffer("file.parquet", uint8Array);
 
         updateProgress(75, "Executing query...");
-        // Execute query - always uses 'file.parquet' as the filename
         const query =
-            customQuery || `SELECT * FROM 'file.parquet' LIMIT 100000`;
+            customQuery ||
+            `SELECT * FROM 'file.parquet' LIMIT ${DEFAULT_QUERY_LIMIT}`;
         console.log(`Executing query: ${query}`);
 
         const result = await conn.query(query);
@@ -442,14 +450,11 @@ initDuckDB()
         fileInput.addEventListener("change", () => {
             const file = fileInput.files[0];
             if (file) {
-                // Show the mapping next to button
                 fileMapping.textContent = `${file.name} → file.parquet`;
-                // Query always uses 'file.parquet'
                 codeMirror.setValue(
-                    `SELECT * FROM 'file.parquet' LIMIT 100000`
+                    `SELECT * FROM 'file.parquet' LIMIT ${DEFAULT_QUERY_LIMIT}`
                 );
 
-                // Update button styles
                 fileButton.classList.add("file-loaded");
                 document
                     .getElementById("loadButton")
