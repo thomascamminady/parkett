@@ -66,6 +66,7 @@
         </div>
 
         <button id="loadButton">Run Query</button>
+        <button id="exportButton">Export to CSV</button>
 
         <div id="progressContainer">
             <div id="progressBar">
@@ -80,6 +81,7 @@
 
             let db = null;
             let conn = null;
+            let lastQueryResults = null;
 
             // Initialize DuckDB
             async function initDuckDB() {
@@ -117,6 +119,57 @@
             function hideProgress() {
                 document.getElementById("progressContainer").style.display =
                     "none";
+            }
+
+            // Export data to CSV
+            function exportToCSV(data) {
+                if (!data || data.length === 0) {
+                    alert("No data to export");
+                    return;
+                }
+
+                // Get column headers
+                const headers = Object.keys(data[0]);
+
+                // Create CSV content
+                let csvContent = headers.join(",") + "\n";
+
+                // Add data rows
+                data.forEach((row) => {
+                    const values = headers.map((header) => {
+                        let value = row[header];
+                        // Handle null/undefined
+                        if (value === null || value === undefined) {
+                            return "";
+                        }
+                        // Escape quotes and wrap in quotes if contains comma, quote, or newline
+                        value = String(value);
+                        if (
+                            value.includes(",") ||
+                            value.includes('"') ||
+                            value.includes("\n")
+                        ) {
+                            value = '"' + value.replace(/"/g, '""') + '"';
+                        }
+                        return value;
+                    });
+                    csvContent += values.join(",") + "\n";
+                });
+
+                // Create blob and download
+                const blob = new Blob([csvContent], {
+                    type: "text/csv;charset=utf-8;",
+                });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+
+                link.setAttribute("href", url);
+                link.setAttribute("download", "query_results.csv");
+                link.style.visibility = "hidden";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
             }
 
             // Render table using DataTables
@@ -172,6 +225,9 @@
                     const result = await conn.query(query);
                     const rows = result.toArray().map((row) => row.toJSON());
 
+                    // Store results for export
+                    lastQueryResults = rows;
+
                     console.log("Query results:");
                     console.table(rows);
                     console.log("Raw data:", rows);
@@ -221,6 +277,18 @@
                             }
 
                             await loadParquetFile(file, query);
+                        });
+
+                    document
+                        .getElementById("exportButton")
+                        .addEventListener("click", () => {
+                            if (!lastQueryResults) {
+                                alert(
+                                    "No query results to export. Please run a query first."
+                                );
+                                return;
+                            }
+                            exportToCSV(lastQueryResults);
                         });
                 })
                 .catch((error) => {
