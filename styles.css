@@ -1,3 +1,27 @@
+:root {
+    /* Primary colors */
+    --color-primary: #4a90e2;
+    --color-primary-hover: #357abd;
+    --color-primary-light: #f0f7ff;
+
+    /* Neutral colors */
+    --color-white: white;
+    --color-black: black;
+    --color-text-dark: #333;
+    --color-text-medium: #555;
+
+    /* Background colors */
+    --color-bg-gray-light: #f0f0f0;
+    --color-bg-gray-medium: #e0e0e0;
+
+    /* Border colors */
+    --color-border: #ddd;
+
+    /* Shadow colors */
+    --color-shadow-light: rgba(0, 0, 0, 0.15);
+    --color-shadow-medium: rgba(0, 0, 0, 0.2);
+}
+
 * {
     box-sizing: border-box;
 }
@@ -7,7 +31,7 @@ body {
         "Helvetica Neue", Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background: white;
+    background: var(--color-white);
 }
 
 .container {
@@ -23,7 +47,7 @@ body {
 
 h1 {
     margin: 0 0 20px 0;
-    color: #333;
+    color: var(--color-text-dark);
     font-size: 24px;
     font-weight: 600;
 }
@@ -35,7 +59,7 @@ h1 {
 label {
     display: block;
     margin-bottom: 5px;
-    color: #555;
+    color: var(--color-text-medium);
     font-weight: 500;
     font-size: 14px;
 }
@@ -45,9 +69,9 @@ input[type="file"] {
 }
 
 .file-button {
-    background: #4a90e2;
-    color: white;
-    border: 1px solid #ddd;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: 1px solid var(--color-border);
     padding: 8px 16px;
     font-size: 14px;
     font-weight: 500;
@@ -56,22 +80,22 @@ input[type="file"] {
 }
 
 .file-button:hover {
-    background: #357abd;
+    background: var(--color-primary-hover);
 }
 
 .file-button.file-loaded {
-    background: #f0f0f0;
-    color: #333;
+    background: var(--color-bg-gray-light);
+    color: var(--color-text-dark);
 }
 
 .file-button.file-loaded:hover {
-    background: #e0e0e0;
+    background: var(--color-bg-gray-medium);
 }
 
 #queryInput {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border);
     font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
     font-size: 14px;
     resize: vertical;
@@ -79,18 +103,18 @@ input[type="file"] {
 
 #queryInput:focus {
     outline: none;
-    border-color: #4a90e2;
+    border-color: var(--color-primary);
 }
 
 .CodeMirror {
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border);
     height: auto;
     font-size: 14px;
     font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
 }
 
 .CodeMirror-focused {
-    border-color: #4a90e2;
+    border-color: var(--color-primary);
 }
 
 .button-group {
@@ -111,88 +135,88 @@ button {
 
 /* Button states */
 .btn-gray {
-    background: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
+    background: var(--color-bg-gray-light);
+    color: var(--color-text-dark);
+    border: 1px solid var(--color-border);
 }
 
 .btn-gray:hover {
-    background: #e0e0e0;
+    background: var(--color-bg-gray-medium);
 }
 
 .btn-blue {
-    background: #4a90e2;
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-white);
     border: none;
 }
 
 .btn-blue:hover {
-    background: #357abd;
+    background: var(--color-primary-hover);
 }
 
 /* File button */
 .file-button {
-    background: #4a90e2;
-    color: white;
-    border: 1px solid #ddd;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border: 1px solid var(--color-border);
 }
 
 .file-button:hover {
-    background: #357abd;
+    background: var(--color-primary-hover);
 }
 
 .file-button.file-loaded {
-    background: #f0f0f0;
-    color: #333;
+    background: var(--color-bg-gray-light);
+    color: var(--color-text-dark);
 }
 
 .file-button.file-loaded:hover {
-    background: #e0e0e0;
+    background: var(--color-bg-gray-medium);
 }
 
 #loadButton {
-    background: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
+    background: var(--color-bg-gray-light);
+    color: var(--color-text-dark);
+    border: 1px solid var(--color-border);
     flex: 1;
 }
 
 #loadButton:hover {
-    background: #e0e0e0;
+    background: var(--color-bg-gray-medium);
 }
 
 #loadButton.file-loaded {
-    background: #4a90e2;
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-white);
     border: none;
 }
 
 #loadButton.file-loaded:hover {
-    background: #357abd;
+    background: var(--color-primary-hover);
 }
 
 #exportButton,
 #plotButton {
-    background: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
+    background: var(--color-bg-gray-light);
+    color: var(--color-text-dark);
+    border: 1px solid var(--color-border);
 }
 
 #exportButton:hover,
 #plotButton:hover {
-    background: #e0e0e0;
+    background: var(--color-bg-gray-medium);
 }
 
 #exportButton.query-executed,
 #plotButton.query-executed {
-    background: #4a90e2;
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-white);
     border: none;
 }
 
 #exportButton.query-executed:hover,
 #plotButton.query-executed:hover {
-    background: #357abd;
+    background: var(--color-primary-hover);
 }
 
 #progressContainer {
@@ -203,19 +227,19 @@ button {
 #progressBar {
     width: 100%;
     height: 30px;
-    background-color: #f0f0f0;
+    background-color: var(--color-bg-gray-light);
     overflow: hidden;
 }
 
 #progressFill {
     height: 100%;
-    background: #4a90e2;
+    background: var(--color-primary);
     width: 0%;
     transition: width 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--color-white);
     font-weight: 500;
     font-size: 14px;
 }
@@ -233,19 +257,19 @@ button {
 
 .table-scroll-wrapper::-webkit-scrollbar-track,
 #tableContainer::-webkit-scrollbar-track {
-    background: #f0f0f0;
+    background: var(--color-bg-gray-light);
     border-radius: 6px;
 }
 
 .table-scroll-wrapper::-webkit-scrollbar-thumb,
 #tableContainer::-webkit-scrollbar-thumb {
-    background: #4a90e2;
+    background: var(--color-primary);
     border-radius: 6px;
 }
 
 .table-scroll-wrapper::-webkit-scrollbar-thumb:hover,
 #tableContainer::-webkit-scrollbar-thumb:hover {
-    background: #357abd;
+    background: var(--color-primary-hover);
 }
 
 .table-scroll-wrapper::-webkit-scrollbar-track {
@@ -254,21 +278,21 @@ button {
 
 /* DataTables pagination styling */
 .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-    background: #4a90e2 !important;
-    color: white !important;
-    border: 1px solid #4a90e2 !important;
+    background: var(--color-primary) !important;
+    color: var(--color-white) !important;
+    border: 1px solid var(--color-primary) !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-    background: #357abd !important;
-    color: white !important;
-    border: 1px solid #357abd !important;
+    background: var(--color-primary-hover) !important;
+    color: var(--color-white) !important;
+    border: 1px solid var(--color-primary-hover) !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-    background: #f0f7ff !important;
-    color: #333 !important;
-    border: 1px solid #4a90e2 !important;
+    background: var(--color-primary-light) !important;
+    color: var(--color-text-dark) !important;
+    border: 1px solid var(--color-primary) !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button {
@@ -276,8 +300,8 @@ button {
 }
 
 #dataTable thead th {
-    background: #4a90e2;
-    color: white !important;
+    background: var(--color-primary);
+    color: var(--color-white) !important;
     font-weight: 600;
     font-size: 14px;
     padding: 8px 10px;
@@ -291,7 +315,7 @@ button {
 }
 
 #dataTable tbody tr:hover {
-    background-color: #f0f7ff;
+    background-color: var(--color-primary-light);
 }
 
 #tableContainer {
@@ -319,7 +343,7 @@ button {
 .subplot .u-title {
     font-size: 16px;
     font-weight: 600;
-    color: #333;
+    color: var(--color-text-dark);
     margin-bottom: 10px;
 }
 
@@ -337,19 +361,19 @@ button {
 }
 
 .hamburger-button {
-    background: #4a90e2;
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-white);
     border: none;
     padding: 12px 20px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px var(--color-shadow-medium);
 }
 
 .hamburger-button:hover {
-    background: #357abd;
+    background: var(--color-primary-hover);
 }
 
 .options-panel {
@@ -357,12 +381,12 @@ button {
     position: absolute;
     bottom: 50px;
     right: 0;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
     border-radius: 4px;
     padding: 15px;
     min-width: 250px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px var(--color-shadow-light);
 }
 
 .options-panel.open {
@@ -376,7 +400,7 @@ button {
 .option-group label {
     display: block;
     margin-bottom: 5px;
-    color: #555;
+    color: var(--color-text-medium);
     font-weight: 500;
     font-size: 13px;
 }
@@ -385,7 +409,7 @@ button {
 .option-group input[type="color"] {
     width: 100%;
     padding: 6px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border);
     border-radius: 3px;
     font-size: 14px;
 }
@@ -397,8 +421,8 @@ button {
 
 .apply-button {
     width: 100%;
-    background: #4a90e2;
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-white);
     padding: 8px;
     border: none;
     border-radius: 3px;
@@ -407,5 +431,5 @@ button {
 }
 
 .apply-button:hover {
-    background: #357abd;
+    background: var(--color-primary-hover);
 }
