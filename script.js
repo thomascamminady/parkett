@@ -3,7 +3,7 @@ import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest
 // Constants
 const DEFAULT_QUERY_LIMIT = 100000;
 const DEFAULT_PAGE_LENGTH = 25;
-const PLOT_HEIGHT = 200;
+const PLOT_HEIGHT = 300;
 const PLOT_MIN_WIDTH = 400;
 const RESIZE_DEBOUNCE_MS = 150;
 const DEFAULT_Y_AXIS_WIDTH = 60;
