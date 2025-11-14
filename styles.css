@@ -41,8 +41,8 @@ input[type="file"] {
 }
 
 .file-button {
-    background: #f0f0f0;
-    color: #333;
+    background: #4a90e2;
+    color: white;
     border: 1px solid #ddd;
     padding: 8px 16px;
     font-size: 14px;
@@ -52,6 +52,15 @@ input[type="file"] {
 }
 
 .file-button:hover {
+    background: #357abd;
+}
+
+.file-button.file-loaded {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.file-button.file-loaded:hover {
     background: #e0e0e0;
 }
 
@@ -96,12 +105,23 @@ button {
 }
 
 #loadButton {
-    background: #4a90e2;
-    color: white;
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
     flex: 1;
 }
 
 #loadButton:hover {
+    background: #e0e0e0;
+}
+
+#loadButton.file-loaded {
+    background: #4a90e2;
+    color: white;
+    border: none;
+}
+
+#loadButton.file-loaded:hover {
     background: #357abd;
 }
 
@@ -115,6 +135,16 @@ button {
     background: #e0e0e0;
 }
 
+#exportButton.query-executed {
+    background: #4a90e2;
+    color: white;
+    border: none;
+}
+
+#exportButton.query-executed:hover {
+    background: #357abd;
+}
+
 #plotButton {
     background: #f0f0f0;
     color: #333;
@@ -123,6 +153,16 @@ button {
 
 #plotButton:hover {
     background: #e0e0e0;
+}
+
+#plotButton.query-executed {
+    background: #4a90e2;
+    color: white;
+    border: none;
+}
+
+#plotButton.query-executed:hover {
+    background: #357abd;
 }
 
 #progressContainer {
@@ -159,6 +199,13 @@ button {
     background: #4a90e2;
     color: white !important;
     font-weight: 600;
+    font-size: 13px;
+    padding: 6px 10px;
+}
+
+#dataTable tbody td {
+    padding: 4px 10px;
+    font-size: 13px;
 }
 
 #dataTable tbody tr:hover {

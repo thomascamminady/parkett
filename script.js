@@ -6,8 +6,8 @@ let lastQueryResults = null;
 let currentPlots = []; // Store current plot instances globally
 let resizeHandler = null; // Store resize handler reference
 let plotOptions = {
-    xAxisColumn: '__index__',
-    lineColor: '#4a90e2'
+    xAxisColumn: "__index__",
+    lineColor: "#4a90e2",
 }; // Store plot options
 
 // Initialize DuckDB
@@ -112,7 +112,7 @@ function renderTable(data) {
 
     // Update button text
     plotButton.textContent = "Plot Data";
-    
+
     // Hide plot options menu
     const plotOptionsMenu = document.getElementById("plotOptionsMenu");
     if (plotOptionsMenu) {
@@ -177,18 +177,19 @@ function plotTable(data) {
 
     // Update button text
     plotButton.textContent = "Show Table";
-    
+
     // Show and populate plot options menu
     const plotOptionsMenu = document.getElementById("plotOptionsMenu");
     const xAxisSelect = document.getElementById("xAxisSelect");
     const lineColorPicker = document.getElementById("lineColorPicker");
-    
+
     plotOptionsMenu.classList.add("visible");
-    
+
     // Populate x-axis dropdown with column names
-    xAxisSelect.innerHTML = '<option value="__index__">Index (default)</option>';
+    xAxisSelect.innerHTML =
+        '<option value="__index__">Index (default)</option>';
     const columnNames = Object.keys(data[0]);
-    columnNames.forEach(col => {
+    columnNames.forEach((col) => {
         const option = document.createElement("option");
         option.value = col;
         option.textContent = col;
@@ -197,13 +198,13 @@ function plotTable(data) {
         }
         xAxisSelect.appendChild(option);
     });
-    
+
     // Set current color
     lineColorPicker.value = plotOptions.lineColor;
 
     // Get x-axis data based on selected column
     let xAxisData;
-    if (plotOptions.xAxisColumn === '__index__') {
+    if (plotOptions.xAxisColumn === "__index__") {
         xAxisData = data.map((_, i) => i);
     } else {
         xAxisData = data.map((row) => {
@@ -271,10 +272,13 @@ function plotTable(data) {
     // Create a plot for each column
     columnNames.forEach((columnName) => {
         // Skip the column used for x-axis (unless it's index)
-        if (columnName === plotOptions.xAxisColumn && plotOptions.xAxisColumn !== '__index__') {
+        if (
+            columnName === plotOptions.xAxisColumn &&
+            plotOptions.xAxisColumn !== "__index__"
+        ) {
             return;
         }
-        
+
         // Extract column data
         const columnData = data.map((row) => {
             const val = row[columnName];
@@ -305,7 +309,10 @@ function plotTable(data) {
             },
             series: [
                 {
-                    label: plotOptions.xAxisColumn === '__index__' ? 'Index' : plotOptions.xAxisColumn,
+                    label:
+                        plotOptions.xAxisColumn === "__index__"
+                            ? "Index"
+                            : plotOptions.xAxisColumn,
                 },
                 {
                     label: columnName,
@@ -393,6 +400,14 @@ async function loadParquetFile(file, customQuery) {
         setTimeout(() => {
             hideProgress();
             renderTable(rows);
+
+            // Update button styles to show export and plot are now available
+            document
+                .getElementById("exportButton")
+                .classList.add("query-executed");
+            document
+                .getElementById("plotButton")
+                .classList.add("query-executed");
         }, 500);
     } catch (error) {
         console.error("Error loading parquet file:", error);
@@ -424,7 +439,7 @@ initDuckDB()
 
         // Wire up the file button to trigger file input
         const fileButton = document.getElementById("fileButton");
-        
+
         fileButton.addEventListener("click", () => {
             fileInput.click();
         });
@@ -439,6 +454,12 @@ initDuckDB()
                 codeMirror.setValue(
                     `SELECT * FROM 'file.parquet' LIMIT 100000`
                 );
+
+                // Update button styles
+                fileButton.classList.add("file-loaded");
+                document
+                    .getElementById("loadButton")
+                    .classList.add("file-loaded");
             }
         });
 
@@ -490,30 +511,37 @@ initDuckDB()
                 renderTable(lastQueryResults);
             }
         });
-        
+
         // Hamburger menu toggle
-        document.getElementById("hamburgerButton").addEventListener("click", () => {
-            const optionsPanel = document.getElementById("optionsPanel");
-            optionsPanel.classList.toggle("open");
-        });
-        
+        document
+            .getElementById("hamburgerButton")
+            .addEventListener("click", () => {
+                const optionsPanel = document.getElementById("optionsPanel");
+                optionsPanel.classList.toggle("open");
+            });
+
         // Apply plot options
-        document.getElementById("applyOptionsButton").addEventListener("click", () => {
-            const xAxisSelect = document.getElementById("xAxisSelect");
-            const lineColorPicker = document.getElementById("lineColorPicker");
-            
-            // Update plot options
-            plotOptions.xAxisColumn = xAxisSelect.value;
-            plotOptions.lineColor = lineColorPicker.value;
-            
-            // Close the panel
-            document.getElementById("optionsPanel").classList.remove("open");
-            
-            // Re-render plots with new options
-            if (lastQueryResults) {
-                plotTable(lastQueryResults);
-            }
-        });
+        document
+            .getElementById("applyOptionsButton")
+            .addEventListener("click", () => {
+                const xAxisSelect = document.getElementById("xAxisSelect");
+                const lineColorPicker =
+                    document.getElementById("lineColorPicker");
+
+                // Update plot options
+                plotOptions.xAxisColumn = xAxisSelect.value;
+                plotOptions.lineColor = lineColorPicker.value;
+
+                // Close the panel
+                document
+                    .getElementById("optionsPanel")
+                    .classList.remove("open");
+
+                // Re-render plots with new options
+                if (lastQueryResults) {
+                    plotTable(lastQueryResults);
+                }
+            });
     })
     .catch((error) => {
         console.error("Failed to initialize DuckDB:", error);
