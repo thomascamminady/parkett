@@ -37,11 +37,22 @@ label {
 }
 
 input[type="file"] {
-    display: block;
-    width: 100%;
-    padding: 8px;
+    display: none;
+}
+
+.file-button {
+    background: #f0f0f0;
+    color: #333;
     border: 1px solid #ddd;
+    padding: 8px 16px;
     font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.file-button:hover {
+    background: #e0e0e0;
 }
 
 #queryInput {
@@ -168,4 +179,91 @@ button {
     font-weight: 600;
     color: #333;
     margin-bottom: 10px;
+}
+
+/* Plot Options Menu */
+.plot-options-menu {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none;
+}
+
+.plot-options-menu.visible {
+    display: block;
+}
+
+.hamburger-button {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.hamburger-button:hover {
+    background: #357abd;
+}
+
+.options-panel {
+    display: none;
+    position: absolute;
+    bottom: 50px;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    min-width: 250px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.options-panel.open {
+    display: block;
+}
+
+.option-group {
+    margin-bottom: 15px;
+}
+
+.option-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.option-group select,
+.option-group input[type="color"] {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.option-group input[type="color"] {
+    height: 40px;
+    cursor: pointer;
+}
+
+.apply-button {
+    width: 100%;
+    background: #4a90e2;
+    color: white;
+    padding: 8px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.apply-button:hover {
+    background: #357abd;
 }

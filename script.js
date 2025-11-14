@@ -5,6 +5,10 @@ let conn = null;
 let lastQueryResults = null;
 let currentPlots = []; // Store current plot instances globally
 let resizeHandler = null; // Store resize handler reference
+let plotOptions = {
+    xAxisColumn: '__index__',
+    lineColor: '#4a90e2'
+}; // Store plot options
 
 // Initialize DuckDB
 async function initDuckDB() {
@@ -108,6 +112,12 @@ function renderTable(data) {
 
     // Update button text
     plotButton.textContent = "Plot Data";
+    
+    // Hide plot options menu
+    const plotOptionsMenu = document.getElementById("plotOptionsMenu");
+    if (plotOptionsMenu) {
+        plotOptionsMenu.classList.remove("visible");
+    }
 
     // Destroy existing DataTable instance if it exists
     if ($.fn.DataTable.isDataTable("#dataTable")) {
@@ -167,12 +177,40 @@ function plotTable(data) {
 
     // Update button text
     plotButton.textContent = "Show Table";
-
-    // Get column names
+    
+    // Show and populate plot options menu
+    const plotOptionsMenu = document.getElementById("plotOptionsMenu");
+    const xAxisSelect = document.getElementById("xAxisSelect");
+    const lineColorPicker = document.getElementById("lineColorPicker");
+    
+    plotOptionsMenu.classList.add("visible");
+    
+    // Populate x-axis dropdown with column names
+    xAxisSelect.innerHTML = '<option value="__index__">Index (default)</option>';
     const columnNames = Object.keys(data[0]);
+    columnNames.forEach(col => {
+        const option = document.createElement("option");
+        option.value = col;
+        option.textContent = col;
+        if (col === plotOptions.xAxisColumn) {
+            option.selected = true;
+        }
+        xAxisSelect.appendChild(option);
+    });
+    
+    // Set current color
+    lineColorPicker.value = plotOptions.lineColor;
 
-    // Create index array (0, 1, 2, ...)
-    const indexData = data.map((_, i) => i);
+    // Get x-axis data based on selected column
+    let xAxisData;
+    if (plotOptions.xAxisColumn === '__index__') {
+        xAxisData = data.map((_, i) => i);
+    } else {
+        xAxisData = data.map((row) => {
+            const val = row[plotOptions.xAxisColumn];
+            return val === null || val === undefined ? null : Number(val);
+        });
+    }
 
     // Calculate the maximum y-axis width needed across all columns
     let maxYAxisWidth = 60;
@@ -197,8 +235,14 @@ function plotTable(data) {
         }
     });
 
-    // Store all plot instances for synchronized zooming
-    const plots = [];
+    // Remove old resize handler if it exists
+    if (resizeHandler) {
+        window.removeEventListener("resize", resizeHandler);
+        resizeHandler = null;
+    }
+
+    // Clear old plots
+    currentPlots = [];
 
     // Calculate initial width after container is visible
     const getPlotWidth = () => {
@@ -207,13 +251,13 @@ function plotTable(data) {
         return Math.max(containerWidth - 40, 400);
     };
 
-    // Handle window resize
+    // Create resize handler
     let resizeTimeout;
-    const handleResize = () => {
+    resizeHandler = () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
             const newWidth = getPlotWidth();
-            plots.forEach((plot) => {
+            currentPlots.forEach((plot) => {
                 if (plot && plot.setSize) {
                     plot.setSize({ width: newWidth, height: 200 });
                 }
@@ -221,12 +265,16 @@ function plotTable(data) {
         }, 150);
     };
 
-    // Remove old resize listener if it exists
-    window.removeEventListener("resize", handleResize);
-    window.addEventListener("resize", handleResize);
+    // Add resize listener
+    window.addEventListener("resize", resizeHandler);
 
     // Create a plot for each column
     columnNames.forEach((columnName) => {
+        // Skip the column used for x-axis (unless it's index)
+        if (columnName === plotOptions.xAxisColumn && plotOptions.xAxisColumn !== '__index__') {
+            return;
+        }
+        
         // Extract column data
         const columnData = data.map((row) => {
             const val = row[columnName];
@@ -240,7 +288,7 @@ function plotTable(data) {
         plotContainer.appendChild(plotDiv);
 
         // uPlot data format: [x-axis, y-axis]
-        const plotData = [indexData, columnData];
+        const plotData = [xAxisData, columnData];
 
         // uPlot options
         const opts = {
@@ -256,10 +304,12 @@ function plotTable(data) {
                 },
             },
             series: [
-                {},
+                {
+                    label: plotOptions.xAxisColumn === '__index__' ? 'Index' : plotOptions.xAxisColumn,
+                },
                 {
                     label: columnName,
-                    stroke: "#4a90e2",
+                    stroke: plotOptions.lineColor,
                     width: 2,
                 },
             ],
@@ -372,11 +422,18 @@ initDuckDB()
         // Set initial height
         codeMirror.setSize(null, "auto");
 
+        // Wire up the file button to trigger file input
+        const fileButton = document.getElementById("fileButton");
+        
+        fileButton.addEventListener("click", () => {
+            fileInput.click();
+        });
+
         // Set default query when file is selected
         fileInput.addEventListener("change", () => {
             const file = fileInput.files[0];
             if (file) {
-                // Show the mapping
+                // Show the mapping next to button
                 fileMapping.textContent = `${file.name} → file.parquet`;
                 // Query always uses 'file.parquet'
                 codeMirror.setValue(
@@ -431,6 +488,30 @@ initDuckDB()
                 plotTable(lastQueryResults);
             } else {
                 renderTable(lastQueryResults);
+            }
+        });
+        
+        // Hamburger menu toggle
+        document.getElementById("hamburgerButton").addEventListener("click", () => {
+            const optionsPanel = document.getElementById("optionsPanel");
+            optionsPanel.classList.toggle("open");
+        });
+        
+        // Apply plot options
+        document.getElementById("applyOptionsButton").addEventListener("click", () => {
+            const xAxisSelect = document.getElementById("xAxisSelect");
+            const lineColorPicker = document.getElementById("lineColorPicker");
+            
+            // Update plot options
+            plotOptions.xAxisColumn = xAxisSelect.value;
+            plotOptions.lineColor = lineColorPicker.value;
+            
+            // Close the panel
+            document.getElementById("optionsPanel").classList.remove("open");
+            
+            // Re-render plots with new options
+            if (lastQueryResults) {
+                plotTable(lastQueryResults);
             }
         });
     })

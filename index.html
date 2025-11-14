@@ -53,18 +53,14 @@
         <div class="container">
             <div class="form-group">
                 <label for="fileInput">Select Parquet File</label>
-                <input type="file" id="fileInput" accept=".parquet" />
-                <div
-                    id="fileMapping"
-                    style="margin-top: 5px; font-size: 12px; color: #666"
-                ></div>
+                <input type="file" id="fileInput" accept=".parquet" style="display: none;" />
+                <button id="fileButton" class="file-button">Choose File</button>
+                <span id="fileMapping" style="margin-left: 10px; font-size: 12px; color: #666;"></span>
             </div>
 
             <div class="form-group">
                 <label for="queryInput">SQL Query</label>
-                <textarea id="queryInput" rows="3">
-SELECT * FROM 'file.parquet' LIMIT 100000</textarea
-                >
+                <textarea id="queryInput" rows="3">SELECT * FROM 'file.parquet' LIMIT 100000</textarea>
             </div>
 
             <div class="button-group">
@@ -81,6 +77,24 @@ SELECT * FROM 'file.parquet' LIMIT 100000</textarea
 
             <div id="tableContainer"></div>
             <div id="plotContainer"></div>
+            
+            <!-- Plot Options Menu -->
+            <div id="plotOptionsMenu" class="plot-options-menu">
+                <button id="hamburgerButton" class="hamburger-button">☰ Plot Options</button>
+                <div id="optionsPanel" class="options-panel">
+                    <div class="option-group">
+                        <label for="xAxisSelect">X-Axis Column:</label>
+                        <select id="xAxisSelect">
+                            <option value="__index__">Index (default)</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label for="lineColorPicker">Line Color:</label>
+                        <input type="color" id="lineColorPicker" value="#4a90e2">
+                    </div>
+                    <button id="applyOptionsButton" class="apply-button">Apply Changes</button>
+                </div>
+            </div>
         </div>
 
         <!-- Custom script -->
