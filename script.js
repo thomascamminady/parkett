@@ -107,6 +107,12 @@ function renderTable(data) {
 
     // Clear previous table if exists
     const tableContainer = document.getElementById("tableContainer");
+
+    // Destroy existing DataTable if it exists
+    if ($.fn.DataTable.isDataTable("#dataTable")) {
+        $("#dataTable").DataTable().destroy();
+    }
+
     tableContainer.innerHTML =
         '<div style="overflow-x: auto;"><table id="dataTable" class="display" style="width:100%"></table></div>';
 
@@ -115,7 +121,6 @@ function renderTable(data) {
         data: data,
         columns: columns,
         pageLength: 10,
-        destroy: true,
     });
 }
 
@@ -131,12 +136,12 @@ async function loadParquetFile(file, customQuery) {
         const uint8Array = new Uint8Array(arrayBuffer);
 
         updateProgress(50, "Registering in DuckDB...");
-        // Register the file in DuckDB
-        await db.registerFileBuffer(file.name, uint8Array);
+        // Register the file in DuckDB as 'file.parquet'
+        await db.registerFileBuffer("file.parquet", uint8Array);
 
         updateProgress(75, "Executing query...");
-        // Execute query - use custom query or default
-        const query = customQuery || `SELECT * FROM '${file.name}' LIMIT 1000`;
+        // Execute query - always uses 'file.parquet' as the filename
+        const query = customQuery || `SELECT * FROM 'file.parquet' LIMIT 1000`;
         console.log(`Executing query: ${query}`);
 
         const result = await conn.query(query);
@@ -168,13 +173,16 @@ initDuckDB()
     .then(() => {
         const fileInput = document.getElementById("fileInput");
         const queryInput = document.getElementById("queryInput");
+        const fileMapping = document.getElementById("fileMapping");
 
         // Set default query when file is selected
         fileInput.addEventListener("change", () => {
             const file = fileInput.files[0];
             if (file) {
-                const newQuery = `SELECT * FROM '${file.name}' LIMIT 1000`;
-                queryInput.value = newQuery;
+                // Show the mapping
+                fileMapping.textContent = `${file.name} → file.parquet`;
+                // Query always uses 'file.parquet'
+                queryInput.value = `SELECT * FROM 'file.parquet' LIMIT 1000`;
             }
         });
 
