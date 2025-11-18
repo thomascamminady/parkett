@@ -163,7 +163,7 @@ function renderTable(data) {
         columns: columns,
         pageLength: DEFAULT_PAGE_LENGTH,
         searching: true,
-        ordering: true,
+        ordering: false,
         info: true,
         autoWidth: false,
         deferRender: true,
